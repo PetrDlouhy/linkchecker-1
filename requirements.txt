@@ -5,3 +5,4 @@ dnspython
 # optional:
 argcomplete
 future
+six
