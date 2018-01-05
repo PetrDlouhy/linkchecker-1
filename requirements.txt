@@ -4,3 +4,4 @@ pyxdg
 dnspython
 # optional:
 argcomplete
+future
