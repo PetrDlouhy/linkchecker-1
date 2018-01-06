@@ -452,9 +452,6 @@ args = dict(
         'clean': MyClean,
         'sdist': MySdist,
     },
-    package_dir = {
-        'linkcheck_dns.dns': 'third_party/dnspython/dns',
-    },
     packages = [
         'linkcheck',
         'linkcheck.bookmarks',
@@ -468,10 +465,6 @@ args = dict(
         'linkcheck.network',
         'linkcheck.parser',
         'linkcheck.plugins',
-        'linkcheck_dns.dns',
-        'linkcheck_dns.dns.rdtypes',
-        'linkcheck_dns.dns.rdtypes.ANY',
-        'linkcheck_dns.dns.rdtypes.IN',
     ],
     ext_modules = [
         Extension('linkcheck.HtmlParser.htmlsax',
