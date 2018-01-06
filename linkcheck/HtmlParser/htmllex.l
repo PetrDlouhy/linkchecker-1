@@ -1109,7 +1109,7 @@ int htmllexDebug (void** scanner, int debug) {
 }
 
 /* prepare scanner for calls to yylex() */
-int htmllexStart (void* scanner, UserData* data, const char* s, int slen) {
+int htmllexStart (void* scanner, UserData* data, const Py_UNICODE* s, int slen) {
     /* append s to data buffer and scan those bytes.
      As Flex does not distinguish between NUL and EOF characters,
      replace NUL with ' '. */

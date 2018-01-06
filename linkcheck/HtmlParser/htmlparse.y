@@ -599,8 +599,8 @@ static void parser_dealloc (parser_object* self) {
 static PyObject* parser_feed (parser_object* self, PyObject* args) {
     /* set up the parse string */
     int slen = 0;
-    char* s = NULL;
-    if (!PyArg_ParseTuple(args, "s#", &s, &slen)) {
+    Py_UNICODE* s = NULL;
+    if (!PyArg_ParseTuple(args, "u#", &s, &slen)) {
 	PyErr_SetString(PyExc_TypeError, "string arg required");
 	return NULL;
     }
