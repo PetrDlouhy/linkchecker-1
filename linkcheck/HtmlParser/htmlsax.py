@@ -18,68 +18,98 @@
 Replacement for the built-in Html parser
 """
 
-from bs4 import BeautifulSoup
+from HTMLParser import HTMLParser
 
 from ..containers import ListDict
 
 
-class Parser(object):
+class Parser(HTMLParser, object):
     html_doc = u""
     handler = None
     encoding = "iso8859-1"
 
     def __init__(self, handler):
         self.handler = handler
+        super(Parser, self).__init__()
 
-    def feed(self, feed_text):
-        if type(feed_text) == bytes:
-            feed_text = feed_text.decode(self.encoding)
-        self.html_doc += feed_text
+    def to_dict(self, attrs):
+        attrs_dict = ListDict()
+        for k, v in attrs:
+            if type(k) == str:
+                k = k.decode(self.encoding, "ignore")
+            if type(v) == str:
+                v = v.decode(self.encoding, "ignore")
+            attrs_dict[k] = v
+        return attrs_dict
 
-    def reset(self):
-        self.html_doc = u""
+    def handle_startendtag(self, tag, attrs):
+        print "Encountered a start end tag:", tag, attrs
+        self.handler.start_end_element(tag, self.to_dict(attrs))  #, tag.text.strip())
+
+    def handle_starttag(self, tag, attrs):
+        print "Encountered a start tag:", tag, attrs
+        if type(tag) == str:
+            tag = tag.decode(self.encoding, "ignore")
+        self.handler.start_element(tag, self.to_dict(attrs))  #, tag.text.strip())
+
+    def handle_endtag(self, tag):
+        print "Encountered an end tag :", tag
+        if hasattr(self.handler, 'end_element'):
+            self.handler.end_element(tag)
+
+    def handle_data(self, data):
+        print "Encountered some data  :", data
+        if hasattr(self.handler, 'characters'):
+            if type(data) == str:
+                data = data.decode(self.encoding, "ignore")
+            self.handler.characters(data)
 
     def flush(self):
-        soup = BeautifulSoup(self.html_doc, 'html.parser')
-        for tag in soup.find_all():
-            attrs = ListDict()
-            for k, v_list in tag.attrs.items():
-                if type(v_list) != list:
-                    v_list = [v_list]
-                for v in v_list:
-                    if type(v) == str:
-                        v = v.decode(self.encoding, "ignore")
-                    attrs[k] = v
-            self.handler.start_element(tag.name, attrs, tag.text.strip())
-            if hasattr(self.handler, 'characters'):
-                self.handler.characters(tag.text)
-            if (not tag.is_empty_element and
-                hasattr(self.handler, 'end_element')):
-                self.handler.end_element(tag.name)
-            if tag.comments:
-                for comment in tag.comments:
-                    self.handler.comment(comment)
+        pass
 
-    def debug(self, text):
-        raise NotImplementedError("number is not implemented")
-
-    def lineno(self):
-        return 0  # It seems, that getting line number of element is not implemented in BeatifulSoup, so this is faked
+    def get_lineno(self):
+        return self.lineno
 
     def last_lineno(self):
-        return 0
+        return 1  # self.last_lineno
 
     def column(self):
-        return 0
+        return 1  # self.column
 
     def last_column(self):
-        return 0
+        return 1  # self.last_column
 
     def pos(self, text):
-        return 0
+        return 1  # self.pos
 
     def peek(self, peek_len):
-        raise NotImplementedError("Peeking is deprecated in favor of 'handler.start_element' attribute 'element_text'")
+        return self.rawdata[:peek_len]
+
+    def handle_comment(self, data):
+        print "Comment  :", data
+        if hasattr(self.handler, 'comment'):
+            self.handler.comment(data)
+
+    def handle_entityref(self, name):
+        c = unichr(name2codepoint[name])
+        print "Named ent:", c
+
+    def handle_charref(self, name):
+        if name.startswith('x'):
+            c = unichr(int(name[1:], 16))
+        else:
+            c = unichr(int(name))
+        print "Num ent  :", c
+
+    def handle_decl(self, data):
+        print "Decl     :", data
+        if hasattr(self.handler, 'doctype'):
+            self.handler.doctype(data[7:])
+
+    def handle_pi(self, data):
+        print "Pi     :", data
+        if hasattr(self.handler, 'pi'):
+            self.handler.pi(data)
 
 
 def parser(handler = None):
